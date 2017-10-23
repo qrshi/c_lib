@@ -1,0 +1,768 @@
+//#include <reg52.h>
+#include "stdlib.h"
+#include "string.h"
+#include "stdio.h"
+
+#define uint32_t unsigned int
+
+#define Rn(module,number) SYS_##module##number##_SET
+#define SYS_GPIO1_SET 1
+#define SYS_GPIO2_SET 2
+
+
+
+__attribute__( ( always_inline ) )  void __adisable_irq(void)
+{
+  __asm__ volatile ("cpsid i");
+}
+
+//
+//volatile :1.peripheral;2.share variable;3.interupt
+//register :1.use register variable instead of local variable;
+uint32_t __get_PRIMASK(void)
+{
+//  register uint32_t __regPriMask        __ASM("primask");
+	
+	register uint32_t __regPriMask __asm__("primask");
+	
+  return(__regPriMask);
+}
+
+
+enum status_categories {
+	STATUS_CATEGORY_OK                = 0x00,
+	STATUS_CATEGORY_COMMON            = 0x10,
+	STATUS_CATEGORY_ANALOG            = 0x30,
+	STATUS_CATEGORY_COM               = 0x40,
+	STATUS_CATEGORY_IO                = 0x50,
+};
+
+enum status_code {
+	STATUS_OK                         = STATUS_CATEGORY_OK     | 0x00,
+	STATUS_VALID_DATA                 = STATUS_CATEGORY_OK     | 0x01,
+	STATUS_NO_CHANGE                  = STATUS_CATEGORY_OK     | 0x02,
+	STATUS_ABORTED                    = STATUS_CATEGORY_OK     | 0x04,
+	STATUS_BUSY                       = STATUS_CATEGORY_OK     | 0x05,
+	STATUS_SUSPEND                    = STATUS_CATEGORY_OK     | 0x06,
+
+	STATUS_ERR_IO                     = STATUS_CATEGORY_COMMON | 0x00,
+	STATUS_ERR_REQ_FLUSHED            = STATUS_CATEGORY_COMMON | 0x01,
+	STATUS_ERR_TIMEOUT                = STATUS_CATEGORY_COMMON | 0x02,
+	STATUS_ERR_BAD_DATA               = STATUS_CATEGORY_COMMON | 0x03,
+	STATUS_ERR_NOT_FOUND              = STATUS_CATEGORY_COMMON | 0x04,
+	STATUS_ERR_UNSUPPORTED_DEV        = STATUS_CATEGORY_COMMON | 0x05,
+	STATUS_ERR_NO_MEMORY              = STATUS_CATEGORY_COMMON | 0x06,
+	STATUS_ERR_INVALID_ARG            = STATUS_CATEGORY_COMMON | 0x07,
+	STATUS_ERR_BAD_ADDRESS            = STATUS_CATEGORY_COMMON | 0x08,
+	STATUS_ERR_BAD_FORMAT             = STATUS_CATEGORY_COMMON | 0x0A,
+	STATUS_ERR_BAD_FRQ                = STATUS_CATEGORY_COMMON | 0x0B,
+	STATUS_ERR_DENIED                 = STATUS_CATEGORY_COMMON | 0x0c,
+	STATUS_ERR_ALREADY_INITIALIZED    = STATUS_CATEGORY_COMMON | 0x0d,
+	STATUS_ERR_OVERFLOW               = STATUS_CATEGORY_COMMON | 0x0e,
+	STATUS_ERR_NOT_INITIALIZED        = STATUS_CATEGORY_COMMON | 0x0f,
+
+	STATUS_ERR_SAMPLERATE_UNAVAILABLE = STATUS_CATEGORY_ANALOG | 0x00,
+	STATUS_ERR_RESOLUTION_UNAVAILABLE = STATUS_CATEGORY_ANALOG | 0x01,
+
+	STATUS_ERR_BAUDRATE_UNAVAILABLE   = STATUS_CATEGORY_COM    | 0x00,
+	STATUS_ERR_PACKET_COLLISION       = STATUS_CATEGORY_COM    | 0x01,
+	STATUS_ERR_PROTOCOL               = STATUS_CATEGORY_COM    | 0x02,
+
+	STATUS_ERR_PIN_MUX_INVALID        = STATUS_CATEGORY_IO     | 0x00,
+};
+
+typedef union {
+  struct {
+    uint32_t SWRST:1;          /*!< bit:      0  Software Reset                     */
+    uint32_t ENABLE:1;         /*!< bit:      1  Enable                             */
+    uint32_t MODE:2;           /*!< bit:  2.. 3  Timer Counter Mode                 */
+    uint32_t PRESCSYNC:2;      /*!< bit:  4.. 5  Prescaler and Counter Synchronization */
+    uint32_t RUNSTDBY:1;       /*!< bit:      6  Run during Standby                 */
+    uint32_t ONDEMAND:1;       /*!< bit:      7  Clock On Demand                    */
+    uint32_t PRESCALER:3;      /*!< bit:  8..10  Prescaler                          */
+    uint32_t ALOCK:1;          /*!< bit:     11  Auto Lock                          */
+    uint32_t :4;               /*!< bit: 12..15  Reserved                           */
+    uint32_t CAPTEN0:1;        /*!< bit:     16  Capture Channel 0 Enable           */
+    uint32_t CAPTEN1:1;        /*!< bit:     17  Capture Channel 1 Enable           */
+    uint32_t :2;               /*!< bit: 18..19  Reserved                           */
+    uint32_t COPEN0:1;         /*!< bit:     20  Capture On Pin 0 Enable            */
+    uint32_t COPEN1:1;         /*!< bit:     21  Capture On Pin 1 Enable            */
+    uint32_t :10;              /*!< bit: 22..31  Reserved                           */
+  } bit;                       /*!< Structure used for bit  access                  */
+  struct {
+    uint32_t :16;              /*!< bit:  0..15  Reserved                           */
+    uint32_t CAPTEN:2;         /*!< bit: 16..17  Capture Channel x Enable           */
+    uint32_t :2;               /*!< bit: 18..19  Reserved                           */
+    uint32_t COPEN:2;          /*!< bit: 20..21  Capture On Pin x Enable            */
+    uint32_t :10;              /*!< bit: 22..31  Reserved                           */
+  } vec;                       /*!< Structure used for vec  access                  */
+  uint32_t reg;                /*!< Type      used for register access              */
+} TC_CTRLA_Type;
+
+typedef unsigned short     int uint16_t;
+#define     __IO    volatile 
+typedef struct
+{
+  __IO uint16_t SR;         /*!< USART Status register,                   Address offset: 0x00 */
+  uint16_t      RESERVED0;  /*!< Reserved, 0x02                                                */
+  __IO uint16_t DR;         /*!< USART Data register,                     Address offset: 0x04 */
+  uint16_t      RESERVED1;  /*!< Reserved, 0x06                                                */
+  __IO uint16_t BRR;        /*!< USART Baud rate register,                Address offset: 0x08 */
+  uint16_t      RESERVED2;  /*!< Reserved, 0x0A                                                */
+  __IO uint16_t CR1;        /*!< USART Control register 1,                Address offset: 0x0C */
+  uint16_t      RESERVED3;  /*!< Reserved, 0x0E                                                */
+  __IO uint16_t CR2;        /*!< USART Control register 2,                Address offset: 0x10 */
+  uint16_t      RESERVED4;  /*!< Reserved, 0x12                                                */
+  __IO uint16_t CR3;        /*!< USART Control register 3,                Address offset: 0x14 */
+  uint16_t      RESERVED5;  /*!< Reserved, 0x16                                                */
+  __IO uint16_t GTPR;       /*!< USART Guard time and prescaler register, Address offset: 0x18 */
+  uint16_t      RESERVED6;  /*!< Reserved, 0x1A                                                */
+} USART_TypeDef;
+#define PERIPH_BASE           ((unsigned int)0x40000000)
+#define APB2PERIPH_BASE       (PERIPH_BASE + 0x00010000)
+#define USART1_BASE           (APB2PERIPH_BASE + 0x1000)
+#define USART1              ((USART_TypeDef *) USART1_BASE) 
+
+//#pragma import(__use_no_semihosting_swi)
+
+//struct __FILE { int handle; /* Add whatever you need here */ };
+//FILE __stdout;
+//FILE __stdin;
+
+//int fputc(int ch, FILE *f) {
+//	while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
+//	USART1->DR = (unsigned char) ch;      
+//	return ch;
+//}
+
+//void _sys_exit(int return_code) {
+//  while (1);    /* endless loop */
+//}
+
+//未初始化的全局变量（.bss段）
+//已被初始化为非零的全局变量(.data段)
+//常量数据（.rodata段）
+//代码（.text段）
+//栈（stack）
+//堆（heap）
+/*
+  //main.cpp    
+  int   a   =   0;   全局初始化区    
+  char   *p1;   全局未初始化区    
+  main()    
+  {    
+  int   b;   栈    
+  char   s[]   =   "abc";   栈    
+  char   *p2;   栈    
+  char   *p3   =   "123456";   123456\0在常量区，p3在栈上。    
+  static   int   c   =0；   全局（静态）初始化区    
+  p1   =   (char   *)malloc(10);    
+  p2   =   (char   *)malloc(20);    
+  分配得来得10和20字节的区域就在堆区。    
+  strcpy(p1,   "123456");   123456\0放在常量区，编译器可能会将它与p3所指向的"123456"  
+  优化成一个地方。    
+  }   
+*/
+
+#define DEF_YES 1U
+#define DEF_NO 0U
+#define ASCII_CHAR_UPPER_A 0x41
+#define ASCII_CHAR_UPPER_Z 0x5a
+#define ASCII_CHAR_LOWER_A 0x61
+#define  ASCII_CHAR_DIGIT_ZERO                          0x30    /* '0'                                                  */
+
+#define ASCII_IS_UPPER(c) ((c>=ASCII_CHAR_UPPER_A)&&(c<=ASCII_CHAR_UPPER_Z))? DEF_YES:DEF_NO
+#define ASCII_TO_LOWER(c)  (ASCII_IS_UPPER(c)==DEF_YES)? (c+(ASCII_CHAR_LOWER_A-ASCII_CHAR_UPPER_A)):c
+
+
+#define point int*
+//#define NULL (unsigned char*)0  
+typedef int* tpoint;   
+typedef unsigned char uchar;
+typedef unsigned int uint;
+typedef unsigned short ushort;
+
+uchar datarx(uchar pstr_src); 
+void SystemInit (void);
+unsigned int CRC16_count(unsigned char *array, unsigned char len);
+void swap(uchar** src,uchar** dest);
+void (*datafunc)(uchar src,uchar dest);
+signed short mycmp(uchar* p1_str,
+						 uchar* p2_str,
+						 uint len_max);
+uchar *mystr_char(const uchar* pstr,
+								uint len_max,
+								uchar srch_char);
+uchar *mystr_last(const uchar* pstr,
+									uint len_max,
+									uchar srch_char);
+uchar *mystr_replace(uchar *pstr,
+										uchar char_srch,
+										uchar char_replace,
+										uchar len_max);
+unsigned int usmart_pow(unsigned char m,unsigned char n);
+unsigned char usmart_str2num(unsigned char *str,unsigned int *res);
+
+//#pragma pack(2) 
+
+//__packed typedef struct
+typedef struct    
+{
+	unsigned char uc;
+	char c;
+	unsigned short us;
+	short s;
+	unsigned int ui;
+	int i;
+}datast;
+
+ typedef struct
+{
+	uchar uc;
+	uint ui;
+//	uchar c;
+	ushort us;
+}bufst;
+
+
+typedef struct
+{
+	uchar a:2,
+	 b:1,
+	 c:1,
+	 d:1,
+	 e:1,
+	 f:1,
+	 g:1,
+	 h:1;
+}port;
+
+typedef union
+{
+	uchar a;
+	uchar b;
+	
+}unport;
+
+typedef enum
+{
+	ON=0X100,
+	OFF
+}KEY;
+
+//#define bufpt ((bufst*)0x20000000)
+bufst tsbufst = {0x01,0x04030201,0x0201};
+datast tsdatast={0x01,0x01,0x0001,0x0001,0x00000001,0x00000001};
+port porta={0,0,0,0,0,0,0,0};
+//const unsigned char condata[]={0,1,2,3,4};
+const unsigned char congroup[2][5]={{0,1,2,3,4},{5,6,7,8,9}};
+ 
+#if	!defined(USER_DEF)
+char *  version  ="123456789"; 
+char time[] ={"17-6-28"};
+#endif
+
+volatile int rxbuffer;
+
+int main(void)
+{
+	const unsigned char condata[]={0,1,2,3,4};
+	KEY ukey;
+	volatile unsigned char dataa=0xaa,datab=0xff;
+	volatile unsigned char databuf[2][3]={{1,2,3},{4,5,6}};
+//	uchar *pta=0x20,*ptb=0x21,**pptc=0x22;
+	volatile unsigned char i,flag=0x0a,leth;
+//	unsigned char* p = 0x48;
+	unsigned char* p = (unsigned char*)4;
+	unsigned char cbuf[5] = "0123";
+	uchar cbuf1[]="0X01";
+	uchar ibuf[5] ={'5','1','2','3',0x00};//null 0 '\0' '0'
+	unsigned int inbuf[]={0x0102};
+//	volatile const point pptr=inbuf;
+//	volatile const tpoint tpptr=inbuf;
+	ukey = OFF;
+//	*pptc=0x25;
+//	**pptc=0x08;
+//	**pptc=databuf[0];
+//	**pptc=databuf[1];
+//	**pptc=databuf;
+//	**pptc=databuf+1;
+		
+ while(1)
+ {
+	 START:
+	 leth=Rn(GPIO,1); 
+	 leth=sizeof(size_t);
+	 p = (unsigned char*)condata; 
+	 p = version; 
+	 p=(unsigned char*)congroup;
+	 usmart_str2num(cbuf1,inbuf); 
+//	 printf("Aa01");
+//	 swap(&pta,&ptb);
+//	p = swap;
+//	datafunc = swap;
+//	(*datafunc)(&pta,&ptb);
+	 dataa=ASCII_TO_LOWER('A');
+//	 mycmp(cbuf1,ibuf,10); 
+	 rxbuffer=  (int)&dataa; 
+	 datarx(dataa);
+	cbuf1[0]=cbuf[0];
+	ibuf[0]=cbuf1[0];
+	leth = ukey;
+	 leth = sizeof(tsbufst);
+	 for(i=0;i<sizeof(cbuf);i++)
+	 {
+		if(cbuf1[i]!=ibuf[i])
+		{
+			flag++;break;
+		}
+		*p=i;
+	 }
+//	 inbuf[0] = flag;
+	 tsdatast.uc = 0x10;
+//	 tsbufst.c=0x10;
+//	 bufpt->c=0x10;
+	 porta.a = 1;
+	porta.b = 1;
+	porta.c = 1;
+porta.d = 1;
+porta.e = 1;
+porta.f = 1;
+porta.g = 1;
+porta.h = 1;
+
+//	 pptr=inbuf;
+//	 *tpptr = flag; 
+	 leth = sizeof(float);
+	 leth++;
+	 leth = sizeof(double);
+	 dataa=1;
+	 datab=-1;
+	 if(dataa!=(~datab+1))
+	 {
+		flag++;
+		 CRC16_count(cbuf,sizeof(cbuf)); 
+	 }
+	 goto START;
+ }	 
+		
+	return 0;
+}
+
+void SystemInit (void)
+{
+
+//         LDR     R4, =NVIC_SYSPRI2     
+//        LDR     R5, =NVIC_PENDSV_PRI
+//        STR     R5, [R4]
+
+//        MOV     R4, #0                 ; set the PSP to 0 for initial context switch call
+//        MSR     PSP, R4
+
+//        LDR     R4, =OSRunning         ; OSRunning = TRUE
+//        MOV     R5, #1
+//        STRB    R5, [R4]
+
+//                                      
+//        LDR     R4, =NVIC_INT_CTRL     ;rigger the PendSV exception (causes context switch)
+//        LDR     R5, =NVIC_PENDSVSET
+//        STR     R5, [R4]
+
+//        CPSIE   I                      ;enable interrupts at processor level
+
+}
+
+uchar datarx(uchar pstr_src) 
+{
+ 	rxbuffer=pstr_src;
+	rxbuffer++;
+	return (rxbuffer);
+}
+
+//************************************************
+//	 CRC16计算    X16+X12+X5+1
+//***********************************************
+unsigned int CRC16_count(unsigned char *array, unsigned char len)
+{
+    unsigned char i; 
+    unsigned int a;
+    unsigned int CRC = 0xffff;
+    while(len--) 
+    { 
+	   a = 0x0001;
+       for(i=0; i<8; i++) 
+       { 
+          if((CRC&0x0001)!=0) 
+				 {
+						CRC>>=1; 
+					CRC^=0x8408;
+				 }           
+         else CRC>>=1;   
+				 
+           if((*array&a)!=0) CRC^=0x8408;
+				 
+		   a <<= 1;                         
+       } 
+       array++;
+	    
+    } 
+    return ~CRC;
+}
+
+void swap(uchar** src,uchar** dest)
+{
+	uint temp;
+	temp =(uint) *src;
+	temp =(uint) *dest;
+
+	
+}
+
+uint mystrlen(const uchar* pstr,
+							size_t num)
+{
+	const uchar* pstr_len;
+	uint len;
+	
+	pstr_len=pstr;
+	len=0u;
+	
+	while((pstr_len!=(uchar*)0)&&
+				(*pstr_len!=(uchar)'\0')&&
+	      (len<num))
+	{
+		pstr_len++;
+		len++;
+	}
+	
+	return (len);
+}
+
+//uchar* mystrcopy(uchar* pstr_dest,
+//								 const uchar* pstr_src,
+//								 uint num)
+//{
+//	uchar* pstr_copy_dest;
+//	const uchar* pstr_copy_src;
+//	uint len;
+//	
+//	pstr_copy_dest=pstr_dest;
+//	pstr_copy_src=pstr_src;
+//	len=0u;
+//	
+//	if((pstr_copy_dest==(uchar*)0)||(pstr_copy_src==(const uchar*)0))return (uchar*)0;
+//	
+//	while((pstr_copy_dest!=(uchar*)0)&&
+//				(pstr_copy_src!=(uchar)'\0')&&
+//				(len<num))
+//	{
+//		*pstr_copy_dest=*pstr_copy_src;
+//		pstr_copy_dest++;
+//		pstr_copy_src++;
+//		len++;
+//	}
+//	
+//	if((pstr_copy_dest==(uchar*)0)||(pstr_copy_src==(const uchar*)0))return (uchar*)0;
+//	
+//	if(len<num)
+//	{
+//		*pstr_copy_dest=(uchar)'\0';
+//	}
+//	
+//	return (pstr_dest);
+//}
+
+//uchar* mystrcat(uchar* pstr_dest,
+//								const uchar* pstr_cat,
+//								uint num)
+//{
+//	uchar* pstr_cat_dest;
+//	const uchar* pstr_cat_src;
+//	uint leth;
+//	
+// if(pstr_dest==((uchar*)0))return ((uchar*)0);
+//	
+// if(num<1)return((uchar*)pstr_dest);
+//	
+//	pstr_cat_dest=pstr_dest;
+//	
+//	while((pstr_cat_dest!=(uchar*)0)&&
+//				(*pstr_cat_dest!=(uchar)'\0'))
+//	{
+//		pstr_cat_dest++;
+//	}
+//	
+//	if(pstr_cat_dest==(uchar*)0)return (uchar*)0;
+//	
+//	pstr_cat_src= pstr_cat;
+//	leth=0u;
+//	
+//	while((pstr_cat_dest!=(uchar*)0)&&
+//				(pstr_cat_src!=(uchar*)0)&&
+//				(pstr_cat_src!='\0')&&
+//				(leth<num))
+//	{
+//		*pstr_cat_dest=*pstr_cat_src;
+//		pstr_cat_dest++;
+//		pstr_cat_src++;
+//		leth++;
+//	}
+//	
+//	if((pstr_cat_dest==(uchar*)0)&&(pstr_cat_src==(uchar*)0))return (uchar*)0;	
+//	
+//	*pstr_cat_dest=(uchar)'\0';
+//	
+//	return (pstr_dest);
+//}
+
+//signed short mycmp(uchar* p1_str,
+//						 uchar* p2_str,
+//						 uint len_max)
+//{
+//    const  uchar    *p1_str_cmp;
+//    const  uchar    *p2_str_cmp;
+//    const  uchar    *p1_str_cmp_next;
+//    const  uchar    *p2_str_cmp_next;
+//           signed short   cmp_val;
+//           uint   cmp_len;
+
+
+//    if (len_max < 1) {                                          /* If cmp len = 0,        rtn 0       (see Note #3d1A). */
+//        return (0);
+//    }
+
+//    if (p1_str == (const uchar *)0) {
+//        if (p2_str == (const uchar *)0) {
+//            return (0);                                         /* If BOTH str ptrs NULL, rtn 0       (see Note #3a1A). */
+//        }
+//        cmp_val = (ushort)0 - (ushort)(*p2_str);
+//        return (cmp_val);                                       /* If p1_str NULL, rtn neg p2_str val (see Note #3a1B1).*/
+//    }
+//    if (p2_str == (const uchar *)0) {
+//        cmp_val = (uchar)(*p1_str);
+//        return (cmp_val);                                       /* If p2_str NULL, rtn pos p1_str val (see Note #3a1B2).*/
+//    }
+
+
+//    p1_str_cmp      = p1_str;
+//    p2_str_cmp      = p2_str;
+//    p1_str_cmp_next = p1_str_cmp;
+//    p2_str_cmp_next = p2_str_cmp;
+//    p1_str_cmp_next++;
+//    p2_str_cmp_next++;
+//    cmp_len         = 0u;
+
+//    while ((*p1_str_cmp      == *p2_str_cmp)            &&      /* Cmp strs until non-matching chars (see Note #3c) ... */
+//           (*p1_str_cmp      != (      uchar  )'\0') &&      /* ... or NULL chars                 (see Note #3b) ... */
+//           ( p1_str_cmp_next != (const uchar *)  0 ) &&      /* ... or NULL ptr(s) found          (see Note #3a2).   */
+//           ( p2_str_cmp_next != (const uchar *)  0 ) &&
+//           ( cmp_len         <  (      uint)len_max)) {   /* ... or max nbr chars cmp'd        (see Note #3d2).   */
+//        p1_str_cmp++;
+//        p2_str_cmp++;
+//        p1_str_cmp_next++;
+//        p2_str_cmp_next++;
+//        cmp_len++;
+//    }
+
+
+//    if (cmp_len == len_max) {                                   /* If strs     identical for max len nbr of chars, ...  */
+//        return (0);                                             /* ... rtn 0                 (see Note #3d2A).          */
+//    }
+
+//    if (*p1_str_cmp != *p2_str_cmp) {                           /* If strs NOT identical, ...                           */
+//                                                                /* ... calc & rtn char diff  (see Note #3c1).           */
+//         cmp_val = (ushort)(*p1_str_cmp) - (ushort)(*p2_str_cmp);
+
+//    } else if (*p1_str_cmp  == (uchar)'\0') {                /* If NULL char(s) found, ...                           */
+//         cmp_val = (ushort)0;                               /* ... strs identical; rtn 0 (see Note #3b).            */
+
+//    } else {
+//        if (p1_str_cmp_next == (const uchar *)0) {
+//            if (p2_str_cmp_next == (const uchar *)0) {       /* If BOTH next str ptrs NULL, ...                      */
+//                cmp_val = (ushort)0;                        /* ... rtn 0                       (see Note #3a2A).    */
+//            } else {                                            /* If p1_str_cmp_next NULL, ...                         */
+//                                                                /* ... rtn neg p2_str_cmp_next val (see Note #3a2B1).   */
+//                cmp_val = (ushort)0 - (ushort)(*p2_str_cmp_next);
+//            }
+//        } else {                                                /* If p2_str_cmp_next NULL, ...                         */
+//            cmp_val = (ushort)(*p1_str_cmp_next);           /* ... rtn pos p1_str_cmp_next val (see Note #3a2B2).   */
+//        }
+//    }
+
+
+//    return (cmp_val);
+
+//}
+
+//uchar* mystr_char(const uchar* pstr,
+//								uint len_max,
+//								uchar srch_char)
+//{
+//const uchar* pstr_char;
+//	uint len_srch;
+//	
+//	if(pstr==(const uchar*)0){
+//		return (uchar*)0;
+//	}
+//	
+//	if(len_max<1){
+//		return (uchar*)0;
+//	}
+//	
+//	pstr_char=pstr;
+//	len_srch=0u;
+//	while((pstr_char!=(const uchar*)0)&&
+//				((*pstr_char)!=(uchar)'\0')&&
+//				((*pstr_char)!=(uchar)srch_char)&&
+//				(len_srch<len_max)){
+//		pstr_char++;
+//		len_srch++;
+//	}
+//	
+//	if(pstr_char!=(uchar*)0){ 
+//		return (uchar*)0;
+//	}
+//	
+//	if(len_srch<len_max){
+//		return (uchar*)0;
+//	}
+//	
+//	if((*pstr_char)!=(uchar)srch_char){
+//		return (uchar*)0;
+//	}
+//	
+//	return ((uchar*)pstr_char); 
+//}
+
+//uchar* mystr_last(const uchar* pstr,
+//									uint len_max,
+//									uchar srch_char)
+//{
+//const uchar* pstr_char;
+//uint str_len;
+//	uint str_len_max;
+//	
+//	if(pstr!=(const uchar*)0){
+//		return (uchar*)0;
+//	}
+//	
+//	if(len_max<1){
+//		return (uchar*)0;
+//	}
+//	
+//	pstr_char=pstr;
+//	str_len_max=len_max-sizeof((uchar)'\0');//null
+//	str_len=mystrlen(pstr_char,str_len_max);
+//	pstr_char += str_len;
+//	while((pstr_char!=pstr)&&
+//				((*pstr_char)!=(uchar)srch_char)){
+//		pstr_char--;
+//		str_len_max++;
+//	}
+//	
+//	if((*pstr_char)!=(uchar)srch_char){ 
+//		return (uchar*)0;
+//	}
+//	
+
+//return (uchar*)pstr_char;
+//}
+
+//uchar *mystr_replace(uchar *pstr,
+//										uchar char_srch,
+//										uchar char_replace,
+//										uchar len_max)
+//{
+//uchar *pstr_char;
+//	uchar len;
+//	
+//	if(pstr==(uchar *)0){
+//	return (uchar *)0;
+//	}
+//	if(len_max<1){
+//	return (uchar *)0;
+//	}
+//	
+//	pstr_char=pstr;
+//	len=len_max;
+//	while((pstr_char!=(uchar *)0)&&
+//				(*pstr_char!=(uchar)'\0')&&
+//				(len>0)){
+//	if(*pstr_char==char_replace){
+//		*pstr_char=char_replace;
+//	}
+//	pstr_char++;
+//	len--;
+//	}
+
+//	return pstr;
+//}
+
+unsigned int usmart_pow(unsigned char m,unsigned char n)
+{
+	unsigned int result=1;	 
+	while(n--)result*=m;    
+	return result;
+}	   
+
+unsigned char usmart_str2num(unsigned char *str,unsigned int *res)
+{
+	unsigned int t;
+	int tnum;
+	unsigned char bnum=0;		//数字的位数
+	unsigned char *p;		  
+	unsigned char hexdec=10;	//默认为十进制数据
+	unsigned char flag=0;		//0,没有符号标记;1,表示正数;2,表示负数.
+	p=str;
+	*res=0;//清零.
+	while(1)
+	{
+		if((*p<='9'&&*p>='0')||((*str=='-'||*str=='+')&&bnum==0)||(*p<='F'&&*p>='A')||(*p=='X'&&bnum==1))//参数合法
+		{
+			if(*p>='A')hexdec=16;	//字符串中存在字母,为16进制格式.
+			if(*str=='-'){flag=2;str+=1;}//偏移掉符号
+			else if(*str=='+'){flag=1;str+=1;}//偏移掉符号
+			else bnum++;			//位数增加.
+		}else if(*p=='\0')break;	//碰到结束符,退出.
+		else return 1;				//不全是十进制或者16进制数据.
+		p++; 
+	} 
+	p=str;			    //重新定位到字符串开始的地址.
+	if(hexdec==16)		//16进制数据
+	{
+		if(bnum<3)return 2;			//位数小于3，直接退出.因为0X就占了2个,如果0X后面不跟数据,则该数据非法.
+		if(*p=='0' && (*(p+1)=='X'))//必须以'0X'开头.
+		{
+			p+=2;	//偏移到数据起始地址.
+			bnum-=2;//减去偏移量	 
+		}else return 3;//起始头的格式不对
+	}else if(bnum==0)return 4;//位数为0，直接退出.	  
+	while(1)
+	{
+		if(bnum)bnum--;
+		if(*p<='9'&&*p>='0')t=*p-'0';	//得到数字的值
+		else t=*p-'A'+10;				//得到A~F对应的值	    
+		*res+=t*usmart_pow(hexdec,bnum);		   
+		p++;
+		if(*p=='\0')break;//数据都查完了.	
+	}
+	if(flag==2)//是负数?
+	{	
+		tnum=-*res; 
+		*res=tnum;
+	}
+	return 0;//成功转换
+}
+
+
+
+
+
+
+
+
+
+//strcpy;strncat;memcmp;strcmp;strncmp;strcasecmp;strncasecmp;strcoll;strxfrm;strlcat;
+//strncpy;strlcpy;strlen;strerror;memset;strtok_r;strstr;strspn;strrchr
+//strcat
+
