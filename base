@@ -3,14 +3,266 @@
 #include "string.h"
 #include "stdio.h"
 
-#define uint32_t unsigned int
+
+typedef unsigned int uint32_t;
+typedef unsigned char int8_t;
+
+
+#define OSCCTRL_STATUS_XOSCRDY_Pos  0            /**< \brief (OSCCTRL_STATUS) XOSC Ready */
+#define OSCCTRL_STATUS_XOSCRDY      (_U(0x1) << OSCCTRL_STATUS_XOSCRDY_Pos)
+#define OSCCTRL_STATUS_OSC16MRDY_Pos 4            /**< \brief (OSCCTRL_STATUS) OSC16M Ready */
+#define OSCCTRL_STATUS_OSC16MRDY    (_U(0x1) << OSCCTRL_STATUS_OSC16MRDY_Pos)
 
 #define Rn(module,number) SYS_##module##number##_SET
 #define SYS_GPIO1_SET 1
 #define SYS_GPIO2_SET 2
 
+#if (SYS_GPIO1_SET==1)
+#undef SYS_GPIO1_SET
+#define SYS_GPIO1_SET 5
+#elif (SYS_GPIO1_SET==2)
+#define a 0x61
+#else
+#define zero 0x30
+#endif
+
+typedef enum gpio_pin
+{
+	GPIO0,
+	GPIO1,
+	GPIO2,
+	GPIO3,
+	NUM
+}GPIO_PIN;
+enum gpio_pin u_gpio_pin=GPIO0;
+int enumbuf[NUM];
 
 
+//list = http://blog.csdn.net/jichunw/article/details/37910371
+//malloc = http://blog.csdn.net/hzhzh007/article/details/6424638
+typedef struct grade NODE;
+
+struct grade *create();   //creat list
+void insert(NODE *head,NODE *pnew,int i);   //insert list
+void pdelete(NODE *head,int i);   //delete list
+void display(NODE *head);   //display list
+void Pfree(NODE *head);    //free list
+
+struct grade
+{
+	uint32_t score;
+	struct grade *next;
+};
+
+
+struct grade *create()
+{
+	NODE *head,*tail,*pnew;
+	int score;
+
+	head=(NODE *)malloc(sizeof(NODE));  //creat head.
+	if(head==NULL)  //creat fail 
+	{
+		printf("creat fail！");
+		return NULL;
+	}
+
+	head->next=NULL;  
+	tail=head;  
+
+	
+	printf("score：");
+
+	while(1)    //creat list
+	{
+		scanf("%d",&score);
+		if(score<0)  //score is negative will return  
+		break;
+		pnew=(NODE *)malloc(sizeof(NODE));  //creat new node
+		if(pnew==NULL)  //creat fail
+		{
+			printf("creat fail！");
+			return NULL;
+		}
+
+		pnew->score=score;  //新节点数据域存放输入的成绩 
+		pnew->next=NULL;   //新节点指针域置NULL 
+		tail->next=pnew;  //新节点插入到表尾 
+		tail=pnew;   //为指针指向当前的尾节点
+	}
+	return head;  //返回创建链表的头指针 
+}
+
+void insert(NODE *head,NODE *pnew,int i)
+{
+	NODE *p;
+	int j;
+
+	p=head;
+	for(j=0;j<i&&p!=NULL;j++)  //p insert into the point i
+		p=p->next;
+	
+	if(p==NULL) 
+	{
+		printf("p not exist！");
+		return;
+	}
+
+	pnew->next=p->next;   //插入节点的指针域指向第i个节点的后继节点
+	p->next=pnew;    //第i个节点的指针域指向插入的新节点
+}
+
+//删除I的下一个节点
+void pdelete(NODE *head,int i)
+{
+	NODE *p,*q;
+	int j;
+
+	if(i==0)  //删除的是头指针，返回
+	return;
+
+	p=head;
+	for(j=1;j<i&&p->next!=NULL;j++)
+	p=p->next;  //将p指向要删除的第i个节点的前驱节点
+
+if(p->next==NULL)  //表明链表中的节点不存在
+{
+	printf("not exist！");
+	return;
+}
+
+	q=p->next;  //q指向待删除的节点 
+	p->next=q->next;  //删除节点i，也可写成p->next=p->next->next 
+	free(q);   //释放节点i的内存单元 
+}
+
+void display(NODE *head)
+{
+	NODE *p;
+
+	for(p=head->next;p!=NULL;p=p->next)
+	printf("%d ",p->score);
+	printf("\n"); 
+}
+
+void pfree(NODE *head)
+{
+	NODE *p,*q;
+	p=head;
+
+	while(p->next!=NULL)    //每次删除头节点的后继节点 
+	{
+		q=p->next;
+		p->next=q->next;
+		free(q);
+	}
+
+	free (head);  //最后删除头节点 
+}
+
+void Pfree(NODE *head)
+{
+	NODE *p,*q;
+	p=head;
+
+	while(p->next!=NULL)
+	{
+		q=p->next;
+		p->next=q->next;
+		free(q);
+	}
+
+	free(p);
+}
+
+
+typedef struct QueueDefinition
+{
+	int8_t *pcHead;					/*< Points to the beginning of the queue storage area. */
+	int8_t *pcTail;					/*< Points to the byte at the end of the queue storage area.  Once more byte is allocated than necessary to store the queue items, this is used as a marker. */
+	int8_t *pcWriteTo;				/*< Points to the free next place in the storage area. */
+
+//	union							/* Use of a union is an exception to the coding standard to ensure two mutually exclusive structure members don't appear simultaneously (wasting RAM). */
+//	{
+//		int8_t *pcReadFrom;			/*< Points to the last place that a queued item was read from when the structure is used as a queue. */
+//		UBaseType_t uxRecursiveCallCount;/*< Maintains a count of the number of times a recursive mutex has been recursively 'taken' when the structure is used as a mutex. */
+//	} u;
+
+//	List_t xTasksWaitingToSend;		/*< List of tasks that are blocked waiting to post onto this queue.  Stored in priority order. */
+//	List_t xTasksWaitingToReceive;	/*< List of tasks that are blocked waiting to read from this queue.  Stored in priority order. */
+
+//	volatile UBaseType_t uxMessagesWaiting;/*< The number of items currently in the queue. */
+//	UBaseType_t uxLength;			/*< The length of the queue defined as the number of items it will hold, not the number of bytes. */
+//	UBaseType_t uxItemSize;			/*< The size of each items that the queue will hold. */
+
+//	volatile BaseType_t xRxLock;	/*< Stores the number of items received from the queue (removed from the queue) while the queue was locked.  Set to queueUNLOCKED when the queue is not locked. */
+//	volatile BaseType_t xTxLock;	/*< Stores the number of items transmitted to the queue (added to the queue) while the queue was locked.  Set to queueUNLOCKED when the queue is not locked. */
+
+	#if ( configUSE_TRACE_FACILITY == 1 )
+		UBaseType_t uxQueueNumber;
+		uint8_t ucQueueType;
+	#endif
+
+	#if ( configUSE_QUEUE_SETS == 1 )
+		struct QueueDefinition *pxQueueSetContainer;
+	#endif
+
+} xQUEUE;
+
+/* The old xQUEUE name is maintained above then typedefed to the new Queue_t
+name below to enable the use of older kernel aware debuggers. */
+typedef xQUEUE Queue_t;
+
+
+struct list
+{
+	unsigned char *head;
+	unsigned char *next;
+	unsigned char *tail;
+};
+
+char showdata1[5][6]={"this","is","a","show","group"};
+const char *showdata[5]={"this","is","a","show","group"};
+static unsigned int bufdata[6]={0,1,2,3,4,0x08000520};
+
+void showstr(void)
+{
+	static int i=0;
+	unsigned char * pt=NULL;
+	
+//	while(-1);
+	
+	pt=(unsigned char *)malloc(10);
+	
+	free(pt);
+	
+	
+	i=((unsigned char *)bufdata[5])[0];
+	i=((unsigned char *)bufdata[5])[-1];
+	i=((unsigned char *)bufdata[5])[-2];
+	i=((unsigned char *)bufdata[5])[-3];
+	i=((unsigned char *)bufdata[5])[-4];
+	i=((unsigned char *)bufdata[5])[-5];
+	
+	
+	i=sizeof(showdata);
+	i=sizeof(showdata[0]);
+	for(i=0;i<(sizeof(showdata)/sizeof(showdata[0]));i++)
+	{
+		i++;
+		i--;
+	}
+}
+
+
+
+
+//
+//?; conditional operation
+//
+
+
+//#define inline
 __attribute__( ( always_inline ) )  void __adisable_irq(void)
 {
   __asm__ volatile ("cpsid i");
@@ -139,12 +391,14 @@ typedef struct
 //  while (1);    /* endless loop */
 //}
 
-//未初始化的全局变量（.bss段）
 //已被初始化为非零的全局变量(.data段)
-//常量数据（.rodata段）
-//代码（.text段）
-//栈（stack）
+//未初始化的全局变量（.bss段）
 //堆（heap）
+//栈（stack）
+
+//代码（.text段）
+//常量数据（.rodata段）
+
 /*
   //main.cpp    
   int   a   =   0;   全局初始化区    
@@ -224,7 +478,6 @@ typedef struct
 	ushort us;
 }bufst;
 
-
 typedef struct
 {
 	uchar a:2,
@@ -254,7 +507,7 @@ typedef enum
 bufst tsbufst = {0x01,0x04030201,0x0201};
 datast tsdatast={0x01,0x01,0x0001,0x0001,0x00000001,0x00000001};
 port porta={0,0,0,0,0,0,0,0};
-//const unsigned char condata[]={0,1,2,3,4};
+const unsigned char condata[]={0xaa,1,2,3,4};
 const unsigned char congroup[2][5]={{0,1,2,3,4},{5,6,7,8,9}};
  
 #if	!defined(USER_DEF)
@@ -266,7 +519,7 @@ volatile int rxbuffer;
 
 int main(void)
 {
-	const unsigned char condata[]={0,1,2,3,4};
+//	const unsigned char condata[]={0,1,2,3,4};
 	KEY ukey;
 	volatile unsigned char dataa=0xaa,datab=0xff;
 	volatile unsigned char databuf[2][3]={{1,2,3},{4,5,6}};
@@ -287,6 +540,8 @@ int main(void)
 //	**pptc=databuf[1];
 //	**pptc=databuf;
 //	**pptc=databuf+1;
+	
+	showstr();
 		
  while(1)
  {
