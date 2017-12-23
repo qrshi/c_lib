@@ -5,9 +5,9 @@
 	
 //program stander
 //
-//ÀàÐÍ:typedef something NewTypeName
-//³£Á¿,enum£ºMAX_ITERATIONS
-//²¼¶û±äÁ¿/º¯Êý  £º isMyBook;has can should
+//类型 typedef something NewTypeName
+//常量,enum£ MAX_ITERATIONS
+//布尔变量和函数 isMyBook;has can should
 	
 typedef unsigned int uint;
 typedef unsigned char uchar;
