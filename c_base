@@ -1,0 +1,287 @@
+//#include <assert.h>
+#include "stdio.h"
+#include "bsp.h"
+#include <stdlib.h>
+	
+//program stander
+//
+//ÀàÐÍ:typedef something NewTypeName
+//³£Á¿,enum£ºMAX_ITERATIONS
+//²¼¶û±äÁ¿/º¯Êý  £º isMyBook;has can should
+	
+typedef unsigned int uint;
+typedef unsigned char uchar;
+
+
+IntArray *pIntArray;
+
+static uint udata=1;
+static int data=-20;
+
+
+//static unsigned char bspdata=0;
+extern unsigned char bspdata;
+
+//unsigned int * restrict restar = (unsigned int *) malloc(10);
+
+
+#define SQUARE(A)((A)*(A))
+#define PRINT(i) (printf(#i"=%d",i))
+
+
+
+#ifndef __C_PLUS_PLUS
+
+	#error Ç×Ã»ÓÐ¶¨ÒåC++±àÒëÆ÷
+#endif
+
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+
+struct data_test
+{
+ unsigned char a;
+short b;
+	char c[2];
+	double d	;
+	char e;
+	int f;
+		char g;
+		
+}udata_test={1,1,1,1,1,1,1,1};
+
+typedef struct
+{
+uchar uc;
+}stdata[4];
+
+stdata dstdata={0,1,2,3};
+
+struct stnum
+{
+uchar uc;
+uint sui;
+uint suj;
+
+};
+
+struct stnum dstnum;
+
+struct
+{
+uchar uc;
+}dstflg;
+
+typedef union
+{
+uchar leth;
+uint datanum;
+}udataleth;
+udataleth dudataleth;
+
+typedef enum
+{
+	one=1,
+	two=2,
+	three=3
+
+}num;
+
+typedef struct{
+	uchar a:1;
+	uchar b:1;
+	uchar c:6;  
+}databit;
+
+//Êý×Ö×ª×Ö·û
+char digi_to_hexchar(int digit)
+{
+	return "0123456789ABCDEF"[digit];
+}
+
+//
+const char *keyword[5]={"eagle","cat","and","dog","ball"};
+uint dgroup[3][3]={{0,1,2},{3,4,5},{6,7,8}};
+
+struct stnum showstr(void)
+{
+	int i=0;
+
+	malloc(2);
+
+	//¶þÎ¬Êý×éÏêÇé
+	i=(int)dgroup;
+	i=(int)(dgroup+1);
+	i=(int)(*dgroup);
+	i=(int)(*dgroup+1);
+	
+	i=gdata;
+	
+	i=udata+data;//ÓÐ·ûºÅÎÞ·ûºÅ×ª»»
+	
+	i=sizeof(udata_test);
+	
+	struct stnum lsdata={0xa1,sizeof(keyword),sizeof(keyword[0])};
+	
+	for(i=0;i<(sizeof(keyword)/sizeof(keyword[0]));i++)
+	{
+	//	printf("%s",keyword[i]); 
+	}
+//	printf("\n");
+	
+//	while(-1);
+	
+	return lsdata;
+}
+
+num dnum;
+
+uchar max(uchar,uchar);
+uchar min(uchar,uchar);
+uchar (*fuc)(uchar,uchar);
+
+const	uchar *complierdate=__DATE__;	
+const	uchar *compliertime=__TIME__;	
+const uchar* ptrdata="abcz";
+const uchar datastra[]="0123";
+uchar datastr[]={'0','1','2','3'};
+ushort datagr[5]={'0','1','2','3','\0'};
+uint datachar={'0'};
+
+uchar const *  const pchar;
+unsigned char gmdata[2][2][2];
+
+void SystemInit(){}
+	
+int main(void)
+	{
+  static uchar datauc=2,i,j,k;
+  ushort* ptr = datagr; 
+	uchar flag=0,uflag=0xff,temp;
+	char udata=0x81;uchar tdata=1;
+	float fdata;double ddata;
+	unsigned long *pldata;
+
+ptr = &datagr[2];
+ptr = (ushort *)ptrdata;
+//assert(ptr!=NULL);
+
+dstnum = showstr(); 	
+	
+switch(flag)
+{
+	case 0:datauc=1;
+	case 1:datauc=2;
+	default:0;
+}
+
+flag=1;
+while(flag)
+if(flag)flag++;
+flag==0;
+
+for(int i=0;i<5;i++)
+	for(int j=0;j<5;j++)
+		for(int k=0;k<5;k++)
+	{
+	flag++;
+	}
+	
+flag=sizeof("ok!!!");
+flag=strlen("ok!!!");
+flag=sizeof('A');
+flag=3;
+datauc= flag&(flag-1);
+
+while(1)
+{
+START:
+do
+{
+	datauc++;
+	continue;
+}while(0);
+
+
+for(i=0;i<2;i++)
+{
+	for(j=0;j<2;j++)
+	{
+		for(k=0;k<2;k++)
+		{
+			gmdata[k][j][i]=0x01;
+		}
+	}
+}
+//PRINT(datauc/datauc);
+datauc=SQUARE(datauc);
+gdata++;
+basp();
+	flag=sizeof(int);
+	flag=sizeof(long); 
+	flag = sizeof(uchar*);
+	flag = sizeof(datagr);
+	pldata=(unsigned long*)0x00010;
+	pldata += 5;
+	flag=(unsigned char)pldata;
+	 if(flag==(~uflag))
+	{
+		datauc++;
+	}
+	else{
+		datauc= sizeof(datastra);
+	}	
+	temp=dgroup[1][2];
+	flag = temp ;
+	ptr = datagr+1;
+	temp = ptr[0]; 
+	fuc=max;
+//	fuc=(uchar (*)(uchar,uchar))0x08000378;
+	temp= (fuc)(1,2);
+	temp=sizeof(fdata);
+	if(temp>2)temp++;
+	temp=sizeof(ddata);
+	if(temp>2)temp++;
+	((udata+tdata)>6) ? (temp=1):(temp=0);
+
+goto START;
+	for(;;)temp++;
+
+	
+
+	do
+	{
+	 temp=sizeof(double);	
+	}while(temp--);
+
+
+}	
+	
+	
+return 0;
+}
+
+uchar max(uchar a,uchar b)
+{
+	static uchar stest=1;
+	static uchar test[20]={2};
+ if(a>b)return test[0];
+	return  stest;  
+}
+
+uchar min(uchar a,uchar b)
+{
+	if(a<b)return a;
+}
+
+
+
+
+
+
+
+
+
+
+
