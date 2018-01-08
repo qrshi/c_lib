@@ -2,22 +2,25 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdio.h"
+#include "clib.h"
 
 
 typedef unsigned int uint32_t;
 typedef unsigned char int8_t;
 
-
+int ptinit=0;
+#define PTINT &ptinit
 #define OSCCTRL_STATUS_XOSCRDY_Pos  0            /**< \brief (OSCCTRL_STATUS) XOSC Ready */
 #define OSCCTRL_STATUS_XOSCRDY      (_U(0x1) << OSCCTRL_STATUS_XOSCRDY_Pos)
 #define OSCCTRL_STATUS_OSC16MRDY_Pos 4            /**< \brief (OSCCTRL_STATUS) OSC16M Ready */
 #define OSCCTRL_STATUS_OSC16MRDY    (_U(0x1) << OSCCTRL_STATUS_OSC16MRDY_Pos)
 
-#define Rn(module,number) SYS_##module##number##_SET
+#define Rn(module,number) SYS_##module##number##_SET //ateml studio 7 sam21l
 #define SYS_GPIO1_SET 1
 #define SYS_GPIO2_SET 2
 
 #if (SYS_GPIO1_SET==1)
+
 #undef SYS_GPIO1_SET
 #define SYS_GPIO1_SET 5
 #elif (SYS_GPIO1_SET==2)
@@ -25,6 +28,147 @@ typedef unsigned char int8_t;
 #else
 #define zero 0x30
 #endif
+
+//IEEE754标准 FLOAT DOUBLE
+//FLOAT=32 DOUBLE=64
+/*1 8 23 位长
++-+--------+-----------------------+
+|S| Exp | Fraction |
++-+--------+-----------------------+
+31 30 23 22 0 位编号 (从右边开始为0)
+偏正值 +127
+单精度的指数部分是-126～+127加上127 ，指数值的大小从1～254（0和255是特殊值）
+*/
+/*
+1 11 52 位长
++-+--------+-----------------------+
+|S| Exp | Fraction |
++-+--------+-----------------------+
+63 62 52 51 0 位编号 (从右边开始为0)
+偏正值 +1023
+*/
+
+
+//((i&0x0f)^(i>4))==0x0e
+//0xff -1
+
+//#message "mesage"
+//#error "error"
+
+stmalloc *tstmalloc;
+
+//stm8:empty reduce;51:full add;arm cortex m3;full reduce;
+//
+
+//msp psp action analyse
+
+
+
+int add(int a,int b);
+int sumb(int a,int b);
+
+typedef struct
+{
+	int (*const FUNC)(int src1,int src2);
+}modelFUNC;
+//typedef int (*const FUNC)(int src1,int src2);
+typedef int (*const FUNC_T)(int src1,int src2);
+FUNC_T func_t=add;
+
+void showStr2(FUNC_T func)
+{
+	volatile int data=0;
+	data=(int)func;
+	data=func(1,2);
+}
+
+typedef struct 
+{
+	modelFUNC modelfunc;
+//	FUNC modelfunc;
+	int src1;
+	int src2;
+}cal;
+
+#define addcal(src1,src2) {{add},(src1),(src2)};
+#define sumbcal(src1,src2) {{sumb},(src1),(src2)};
+//#define addcal(src1,src2) {(add),(src1),(src2)};
+//#define sumbcal(src1,src2) {(sumb),(src1),(src2)};
+
+//typedef int (*FUNC)(int src1,int src2);
+//FUNC func_g[4]={add};
+cal addfunc=addcal(2,2);
+cal sumbfunc=sumbcal(3,2);
+//int (*func_g[])(int src1,int src2)={add};
+
+int add(int a,int b)
+{
+	return (a+b);
+}
+
+int sumb(int a,int b)
+{
+	return (a-b);
+}
+
+int datagroup[3][3]={{0,1,2},{3,4,5},{6,7,8}};
+char showdata1[5][6]={"this","is","a","show","group"};
+const char *showdata[5]={"this","is","a","show","group"};
+static unsigned int bufdata[6]={0,1,2,3,4,0x08000520};
+
+void showStr(cal *const calfunc)
+{
+	static int i=0;
+	unsigned char * pt=NULL,data;
+	int *pmsblsbch=PTINT;
+	static int ushowstr=0;
+	
+	
+	showStr2(func_t);
+	
+	*pmsblsbch=0x01020304;
+	pt=(unsigned char *)pmsblsbch;
+	data=*pt;
+	
+	
+	
+//	i=(calfunc->modelfunc.FUNC)(addfunc.src1,addfunc.src2);  
+		i=(((modelFUNC *)calfunc)->FUNC)(addfunc.src1,addfunc.src2);
+//	i=(*((FUNC*)calfunc))(addfunc.src1,addfunc.src2);   
+	
+	i=(int)datagroup;
+	i=(int)(datagroup+1);
+	i=(int)(*datagroup);
+	i=(int)(*datagroup+1);
+	
+//	while(-1);
+	
+	pt=(unsigned char *)malloc(10);
+	
+	free(pt);
+	
+	
+	i=((unsigned char *)bufdata[5])[0];
+	i=((unsigned char *)bufdata[5])[-1];
+	i=((unsigned char *)bufdata[5])[-2];
+	i=((unsigned char *)bufdata[5])[-3];
+	i=((unsigned char *)bufdata[5])[-4];
+	i=((unsigned char *)bufdata[5])[-5];
+	
+	
+	i=sizeof(showdata);
+	i=sizeof(showdata[0]);
+	for(i=0;i<(sizeof(showdata)/sizeof(showdata[0]));i++)
+	{
+		i++;
+		i--;
+	}
+}
+
+
+
+
+//when the parameter is more than three should use struct parameter
 
 typedef enum gpio_pin
 {
@@ -42,11 +186,11 @@ int enumbuf[NUM];
 //malloc = http://blog.csdn.net/hzhzh007/article/details/6424638
 typedef struct grade NODE;
 
-struct grade *create();   //creat list
+NODE *create();   //creat list
 void insert(NODE *head,NODE *pnew,int i);   //insert list
 void pdelete(NODE *head,int i);   //delete list
 void display(NODE *head);   //display list
-void Pfree(NODE *head);    //free list
+void pfree(NODE *head);    //free list
 
 struct grade
 {
@@ -55,7 +199,7 @@ struct grade
 };
 
 
-struct grade *create()
+NODE *create()
 {
 	NODE *head,*tail,*pnew;
 	int score;
@@ -160,21 +304,6 @@ void pfree(NODE *head)
 	free (head);  //最后删除头节点 
 }
 
-void Pfree(NODE *head)
-{
-	NODE *p,*q;
-	p=head;
-
-	while(p->next!=NULL)
-	{
-		q=p->next;
-		p->next=q->next;
-		free(q);
-	}
-
-	free(p);
-}
-
 
 typedef struct QueueDefinition
 {
@@ -221,39 +350,6 @@ struct list
 	unsigned char *tail;
 };
 
-char showdata1[5][6]={"this","is","a","show","group"};
-const char *showdata[5]={"this","is","a","show","group"};
-static unsigned int bufdata[6]={0,1,2,3,4,0x08000520};
-
-void showstr(void)
-{
-	static int i=0;
-	unsigned char * pt=NULL;
-	
-//	while(-1);
-	
-	pt=(unsigned char *)malloc(10);
-	
-	free(pt);
-	
-	
-	i=((unsigned char *)bufdata[5])[0];
-	i=((unsigned char *)bufdata[5])[-1];
-	i=((unsigned char *)bufdata[5])[-2];
-	i=((unsigned char *)bufdata[5])[-3];
-	i=((unsigned char *)bufdata[5])[-4];
-	i=((unsigned char *)bufdata[5])[-5];
-	
-	
-	i=sizeof(showdata);
-	i=sizeof(showdata[0]);
-	for(i=0;i<(sizeof(showdata)/sizeof(showdata[0]));i++)
-	{
-		i++;
-		i--;
-	}
-}
-
 
 
 
@@ -268,7 +364,7 @@ __attribute__( ( always_inline ) )  void __adisable_irq(void)
   __asm__ volatile ("cpsid i");
 }
 
-//
+//write back=cache;write through=volatile;write allocate;
 //volatile :1.peripheral;2.share variable;3.interupt
 //register :1.use register variable instead of local variable;
 uint32_t __get_PRIMASK(void)
@@ -350,7 +446,7 @@ typedef union {
   } vec;                       /*!< Structure used for vec  access                  */
   uint32_t reg;                /*!< Type      used for register access              */
 } TC_CTRLA_Type;
-
+	
 typedef unsigned short     int uint16_t;
 #define     __IO    volatile 
 typedef struct
@@ -470,6 +566,7 @@ typedef struct
 	int i;
 }datast;
 
+//word or value of 
  typedef struct
 {
 	uchar uc;
@@ -541,11 +638,15 @@ int main(void)
 //	**pptc=databuf;
 //	**pptc=databuf+1;
 	
-	showstr();
+	showStr(&addfunc);
 		
  while(1)
  {
 	 START:
+//	 leth=(*func_g[0])(1,2);
+//	 leth=func_g[0](2,2);
+	 leth = sumbfunc.modelfunc.FUNC(sumbfunc.src1,sumbfunc.src2);
+	 
 	 leth=Rn(GPIO,1); 
 	 leth=sizeof(size_t);
 	 p = (unsigned char*)condata; 
