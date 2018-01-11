@@ -3,11 +3,49 @@
 #include "bsp.h"
 #include <stdlib.h>
 	
+//要注意的是，如果是#define 宏名，没有宏体如 #define DEBUG，就必须使用#ifdef或#ifndef与之对应，
+//如果是#define 宏名 宏体，如 #define NUM 1,#if 和#ifdef都可以使用。
+/* 
+　　　　#if defined(或者是ifdef)<标识符(条件)> 
+　　　　<程序段1>
+　　　　 [#else 
+　　　　<程序段2>] 
+　　　　#endif 
+
+　　　　#if !defined(或者是ifndef)<标识符(条件)> 
+
+　　　　<程序段1> 
+
+　　　　[#else 
+　　　　<程序段2>] 
+
+　　　　#endif 
+
+ 　　#ifdef … 
+　　[#elif … ] 
+　　[#elif …] 
+　　#else …  
+　　#endif
+*/
+
+	
 //program stander
 //
-//类型 typedef something NewTypeName
-//常量,enum£ MAX_ITERATIONS
-//布尔变量和函数 isMyBook;has can should
+//类型:typedef something NewTypeName
+//常量,enum：MAX_ITERATIONS
+//布尔变量/函数  ： isMyBook;has can should
+
+struct _slist_node;
+typedef struct _slist_node* slist_node_t;
+struct _slist_node{
+int data;
+slist_node_t *p_next;
+};
+
+struct _slist_node_n{
+int data;
+	struct _slist_node_n *p_next;
+};
 	
 typedef unsigned int uint;
 typedef unsigned char uchar;
@@ -32,7 +70,7 @@ extern unsigned char bspdata;
 
 #ifndef __C_PLUS_PLUS
 
-	#error Ç×Ã»ÓÐ¶¨ÒåC++±àÒëÆ÷
+	#error 亲没有定义C++编译器
 #endif
 
 typedef unsigned char uchar;
@@ -94,7 +132,7 @@ typedef struct{
 	uchar c:6;  
 }databit;
 
-//Êý×Ö×ª×Ö·û
+//数字转字符
 char digi_to_hexchar(int digit)
 {
 	return "0123456789ABCDEF"[digit];
@@ -106,11 +144,27 @@ uint dgroup[3][3]={{0,1,2},{3,4,5},{6,7,8}};
 
 struct stnum showstr(void)
 {
-	int i=0;
+	static  unsigned int i=0,signeddata=3;
+	static  int signedtemp=0;
+	int *pt=NULL;
+	static   int count=-15;
+	
+			signedtemp=count-signeddata;//3+0x0000000f
+	
+	if((count-signeddata)>6)//隐式符号转换
+	{
+		i++;	
+	}
+	if(signedtemp>6)//显示表达
+	{
+		i++;
+	}
+		
+	
+	pt=malloc(2);
+	free(pt);
 
-	malloc(2);
-
-	//¶þÎ¬Êý×éÏêÇé
+	//二维数组详情
 	i=(int)dgroup;
 	i=(int)(dgroup+1);
 	i=(int)(*dgroup);
@@ -118,7 +172,7 @@ struct stnum showstr(void)
 	
 	i=gdata;
 	
-	i=udata+data;//ÓÐ·ûºÅÎÞ·ûºÅ×ª»»
+	i=udata+data;//有符号无符号转换
 	
 	i=sizeof(udata_test);
 	
