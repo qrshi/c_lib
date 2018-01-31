@@ -4,6 +4,10 @@
 #include "stdio.h"
 #include "clib.h"
 
+/*hex:length address option data crc*/
+
+#define CR 0x0D /*'\r'*/ 
+#define LF 0x0A /*'\n'*/  
 
 typedef unsigned int uint32_t;
 typedef unsigned char int8_t;
@@ -29,8 +33,41 @@ int ptinit=0;
 #define zero 0x30
 #endif
 
+void adddata(void);
+void deldata(void);
+void devdata(void);
+	
+void (* const VectorArray[])(void) =
+{
+adddata,
+deldata,
+devdata
+};
+void adddata(void){};
+void deldata(void){};
+void devdata(void){};
+
 //IEEE754标准 FLOAT DOUBLE
 //FLOAT=32 DOUBLE=64
+/*
+10=>2
+*2取整
+2=>10
+*2的指数相加
+
+0.75
+十进制0.75转换成二进制
+0.11
+规格化二进制数
+1.1*2^-1
+计算指数
+-1+127=126
+符号位 指数部分 尾数部分
+0 01111110 10000000000000000000000
+以单精度（real*4）浮点格式存储该数
+0011 1111 0100 0000 0000 0000 0000 0000
+0x3F40 0000
+*/
 /*1 8 23 位长
 +-+--------+-----------------------+
 |S| Exp | Fraction |
@@ -49,13 +86,13 @@ int ptinit=0;
 */
 
 
-//((i&0x0f)^(i>4))==0x0e
+//((i&0x0f)^(i>>4))==0x0e
 //0xff -1
 
 //#message "mesage"
 //#error "error"
 
-stmalloc *tstmalloc;
+stmalloc_t *tstmalloc;
 
 //stm8:empty reduce;51:full add;arm cortex m3;full reduce;
 //
@@ -118,10 +155,10 @@ static unsigned int bufdata[6]={0,1,2,3,4,0x08000520};
 
 void showStr(cal *const calfunc)
 {
-	static int i=0;
+	static int i=CR;
 	unsigned char * pt=NULL,data;
 	int *pmsblsbch=PTINT;
-	static int ushowstr=0;
+	static int ushowstr;
 	
 	
 	showStr2(func_t);
@@ -144,7 +181,7 @@ void showStr(cal *const calfunc)
 //	while(-1);
 	
 	pt=(unsigned char *)malloc(10);
-	
+	if(pt==NULL){return ;}
 	free(pt);
 	
 	
@@ -184,13 +221,13 @@ int enumbuf[NUM];
 
 //list = http://blog.csdn.net/jichunw/article/details/37910371
 //malloc = http://blog.csdn.net/hzhzh007/article/details/6424638
-typedef struct grade NODE;
+typedef struct grade NODE_t;
 
-NODE *create();   //creat list
-void insert(NODE *head,NODE *pnew,int i);   //insert list
-void pdelete(NODE *head,int i);   //delete list
-void display(NODE *head);   //display list
-void pfree(NODE *head);    //free list
+NODE_t *create();   //creat list
+void insert(NODE_t *head,NODE_t *pnew,int i);   //insert list
+void pdelete(NODE_t *head,int i);   //delete list
+void display(NODE_t *head);   //display list
+void pfree(NODE_t *head);    //free list
 
 struct grade
 {
@@ -199,12 +236,12 @@ struct grade
 };
 
 
-NODE *create()
+NODE_t *create()
 {
-	NODE *head,*tail,*pnew;
+	NODE_t *head,*tail,*pnew;
 	int score;
 
-	head=(NODE *)malloc(sizeof(NODE));  //creat head.
+	head=(NODE_t *)malloc(sizeof(NODE_t));  //creat head.
 	if(head==NULL)  //creat fail 
 	{
 		printf("creat fail！");
@@ -222,7 +259,7 @@ NODE *create()
 		scanf("%d",&score);
 		if(score<0)  //score is negative will return  
 		break;
-		pnew=(NODE *)malloc(sizeof(NODE));  //creat new node
+		pnew=(NODE_t *)malloc(sizeof(NODE_t));  //creat new node
 		if(pnew==NULL)  //creat fail
 		{
 			printf("creat fail！");
@@ -237,9 +274,9 @@ NODE *create()
 	return head;  //返回创建链表的头指针 
 }
 
-void insert(NODE *head,NODE *pnew,int i)
+void insert(NODE_t *head,NODE_t *pnew,int i)
 {
-	NODE *p;
+	NODE_t *p;
 	int j;
 
 	p=head;
@@ -257,9 +294,9 @@ void insert(NODE *head,NODE *pnew,int i)
 }
 
 //删除I的下一个节点
-void pdelete(NODE *head,int i)
+void pdelete(NODE_t *head,int i)
 {
-	NODE *p,*q;
+	NODE_t *p,*q;
 	int j;
 
 	if(i==0)  //删除的是头指针，返回
@@ -280,18 +317,18 @@ if(p->next==NULL)  //表明链表中的节点不存在
 	free(q);   //释放节点i的内存单元 
 }
 
-void display(NODE *head)
+void display(NODE_t *head)
 {
-	NODE *p;
+	NODE_t *p;
 
 	for(p=head->next;p!=NULL;p=p->next)
 	printf("%d ",p->score);
 	printf("\n"); 
 }
 
-void pfree(NODE *head)
+void pfree(NODE_t *head)
 {
-	NODE *p,*q;
+	NODE_t *p,*q;
 	p=head;
 
 	while(p->next!=NULL)    //每次删除头节点的后继节点 
@@ -601,7 +638,7 @@ typedef enum
 }KEY;
 
 //#define bufpt ((bufst*)0x20000000)
-bufst tsbufst = {0x01,0x04030201,0x0201};
+bufst tsbufst = {CR,0x04030201,0x0201};
 datast tsdatast={0x01,0x01,0x0001,0x0001,0x00000001,0x00000001};
 port porta={0,0,0,0,0,0,0,0};
 const unsigned char condata[]={0xaa,1,2,3,4};
