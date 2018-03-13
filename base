@@ -4,6 +4,12 @@
 #include "stdio.h"
 #include "clib.h"
 
+/*restrict是C99中定义的关键字
+restrict只用于限定指针,所有修改该指针所指向内容的操作全部都是基于(base on)该指针的，
+即不存在其它进行修改操作的途径；这样的后果是帮助编译器进行更好的代码优化，生成更有效率的汇编代码
+void *memcpy( void * restrict dest ,const void * restrict src,sizi_t n) 
+*/
+
 /*hex:length address option data crc*/
 
 #define CR 0x0D /*'\r'*/ 
