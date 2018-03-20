@@ -4,6 +4,11 @@
 #include "stdio.h"
 #include "clib.h"
 
+/*
+8051 little endian
+arm cortex m3 little endian
+*/
+
 /*restrict是C99中定义的关键字
 restrict只用于限定指针,所有修改该指针所指向内容的操作全部都是基于(base on)该指针的，
 即不存在其它进行修改操作的途径；这样的后果是帮助编译器进行更好的代码优化，生成更有效率的汇编代码
