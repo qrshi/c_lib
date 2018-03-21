@@ -5,6 +5,10 @@
 #include "clib.h"
 
 /*
+sfr P0=0X80;
+sbit KBO=P0^0;
+*/
+/*
 8051 little endian
 arm cortex m3 little endian
 */
