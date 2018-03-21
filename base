@@ -7,6 +7,21 @@
 /*
 sfr P0=0X80;
 sbit KBO=P0^0;
+__sfr __no_init volatile union
+{
+  unsigned char P0; /* Port 0 */
+  struct /* Port 0 */
+  {
+    unsigned char P0_0 : 1;
+    unsigned char P0_1 : 1;
+    unsigned char P0_2 : 1;
+    unsigned char P0_3 : 1;
+    unsigned char P0_4 : 1;
+    unsigned char P0_5 : 1;
+    unsigned char P0_6 : 1;
+    unsigned char P0_7 : 1;
+  } P0_bit;
+} @ 0x80;
 */
 /*
 8051 little endian
