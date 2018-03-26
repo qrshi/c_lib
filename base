@@ -5,6 +5,9 @@
 #include "clib.h"
 
 /*
+disassmbely all into signed ;add and sumb instrument same,but div and mul have two kind of instrument;
+*/
+/*
 sfr P0=0X80;
 sbit KBO=P0^0;
 __sfr __no_init volatile union
