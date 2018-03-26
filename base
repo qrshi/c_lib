@@ -5,7 +5,7 @@
 #include "clib.h"
 
 /*
-disassmbely all into signed ;add and sumb instrument same,but div and mul have two kind of instrument;
+disassmbely all into signed ;add and sumb instrument same no signed and unsigned,but div and mul have two kind of instrument;
 */
 /*
 sfr P0=0X80;
