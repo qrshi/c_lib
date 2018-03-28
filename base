@@ -9,7 +9,7 @@
 e) 一个有10个指针的数组，该指针是指向一个整型数的。（An array of 10 pointers to integers） int *a[10];
 f) 一个指向有10个整型数数组的指针（ A pointer to an array of 10 integers） int (*a)[10];
 int (*a)[10] and int a[10] are different:the type of int(*a)[10] is int[10]*;the type of int a[10] is int[10].
-int *a[10] and int a[10][10] different:a[][] all in flash ,*a[10] a in ram value in flash;
+int *a[10] and int a[10][10] different:a[][] all in flash(type is int [][]) ,*a[10] a in ram value in flash(type is int* [10]);
 */
 /*
 disassmbely all into signed ;add and sumb instrument same no signed and unsigned,but div and mul have two kind of instrument;
