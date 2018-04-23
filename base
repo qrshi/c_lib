@@ -5,6 +5,24 @@
 #include "clib.h"
 
 
+typedef struct
+{
+  char x;
+  int y;
+}struct1;
+
+typedef __packed struct
+{
+  char x;
+  int y;
+}struct2;
+/*在32位的ARM SDT编译器中
+sizeof(struct1)值为8
+sizeof(struct2)值为5；
+__packed是进行一字节对齐。使用_packed一般会以降低运行性能为代价，
+由于大多数cpu处理数据在合适的字节边界数的情况下会更有效，packed的使用会破坏这种自然的边界数。
+*/
+
 /*
 e) 一个有10个指针的数组，该指针是指向一个整型数的。（An array of 10 pointers to integers） int *a[10];
 f) 一个指向有10个整型数数组的指针（ A pointer to an array of 10 integers） int (*a)[10];
