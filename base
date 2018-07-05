@@ -52,7 +52,7 @@ __sfr __no_init volatile union
 } @ 0x80;
 */
 /*
-8051 little endian
+8051 big endian
 arm cortex m3 little endian
 */
 
