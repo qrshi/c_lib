@@ -5,6 +5,17 @@
 #include "clib.h"
 
 
+
+if(GETFLAG(SRC,BI0)==0)
+{
+
+}
+if(GETFLAG(SRC,BI0)!=0)
+{
+
+}
+
+
 typedef struct
 {
   char x;
