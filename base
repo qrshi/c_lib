@@ -4,7 +4,61 @@
 #include "stdio.h"
 #include "clib.h"
 
+enum escapes
 
+{
+
+    BELL      = '\a',
+
+    BACKSPACE = '\b',
+
+    HTAB      = '\t',
+
+    RETURN    = '\r',
+
+    NEWLINE   = '\n',
+
+    VTAB      = '\v',
+
+    SPACE     = ' '
+
+};
+
+ 
+
+enum BOOLEAN { FALSE = 0, TRUE } match_flag;
+
+ 
+
+void main()
+
+{
+
+    printf("%d bytes \n", sizeof(enum escapes)); //4 bytes
+
+    printf("%d bytes \n", sizeof(escapes)); //4 bytes
+
+ 
+
+    printf("%d bytes \n", sizeof(enum BOOLEAN)); //4 bytes
+
+    printf("%d bytes \n", sizeof(BOOLEAN)); //4 bytes
+
+    printf("%d bytes \n", sizeof(match_flag)); //4 bytes
+
+ 
+
+    printf("%d bytes \n", sizeof(SPACE)); //4 bytes
+
+    printf("%d bytes \n", sizeof(NEWLINE)); //4 bytes
+
+    printf("%d bytes \n", sizeof(FALSE)); //4 bytes
+
+    printf("%d bytes \n", sizeof(0)); //4 bytes
+
+}
+
+enum是基本数据类型,相当于UINT,
 
 if(GETFLAG(SRC,BI0)==0)
 {
