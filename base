@@ -4,6 +4,10 @@
 #include "stdio.h"
 #include "clib.h"
 
+##表示连接定义，而#则将定义变更为字符串。
+#define _STR(x) _VAL(x) #define _VAL(x) #x  不直接定义#define _STR(x) #x ，因为x可以是个宏，一次替换时x不会被展开，
+会被直接转换为字符串。比如《C标准库》里的例子，这样定义之后可以写_STR(__LINE__)，如果_VAL(x)会直接得到"__LINE__"而不会是当前的行数。
+
 enum escapes
 
 {
