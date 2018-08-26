@@ -4,6 +4,11 @@
 #include "stdio.h"
 #include "clib.h"
 
+/*
+section是把相应的结构放到指定的段中
+属性 unused 用于函数和变量，表示该函数或变量可能不使用，这个属性可以避免
+编译器产生警告信 息。used反之 。
+*/
 BLE_LBS_DEF(m_lbs);
 static ble_lbs_t m_lbs; 
 static nrf_sdh_ble_evt_observer_t m_lbs_obs __attribute__ ((section("sdh_ble_observers2"))) __attribute__((used)) = 
