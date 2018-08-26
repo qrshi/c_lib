@@ -4,6 +4,11 @@
 #include "stdio.h"
 #include "clib.h"
 
+BLE_LBS_DEF(m_lbs);
+static ble_lbs_t m_lbs; 
+static nrf_sdh_ble_evt_observer_t m_lbs_obs __attribute__ ((section("sdh_ble_observers2"))) __attribute__((used)) = 
+{ . handler = ble_lbs_on_ble_evt, . p_context = &m_lbs };
+
 ##表示连接定义，而#则将定义变更为字符串。
 #define _STR(x) _VAL(x) #define _VAL(x) #x  不直接定义#define _STR(x) #x ，因为x可以是个宏，一次替换时x不会被展开，
 会被直接转换为字符串。比如《C标准库》里的例子，这样定义之后可以写_STR(__LINE__)，如果_VAL(x)会直接得到"__LINE__"而不会是当前的行数。
