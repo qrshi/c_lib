@@ -2,6 +2,16 @@
 #include "stdio.h"
 #include "bsp.h"
 #include <stdlib.h>
+
+/*
+ #代表的是在字符串前面加上0x。08表示输出8个字符。x是输出16进制
+当然你也可以写成0x%08x,但是这两种是有区别的。一个输出包括0x输出8bit，而第二种包含0x输出10bit
+*/
+printf("%#010x\n", i);  // gives 0x00000007
+printf("0x%08x\n", i);  // gives 0x00000007
+printf("%#08x\n", i);   // gives 0x000007
+printf("%04x", 4779); // gives 12ab
+printf("%04X", 4779); // gives 12AB
 	
 //要注意的是，如果是#define 宏名，没有宏体如 #define DEBUG，就必须使用#ifdef或#ifndef与之对应，
 //如果是#define 宏名 宏体，如 #define NUM 1,#if 和#ifdef都可以使用。
