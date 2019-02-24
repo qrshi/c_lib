@@ -1,0 +1,14 @@
+//memmove test
+#define FIFO_MAX    25
+void mem_memmove_test(unsigned int data)
+{
+    static unsigned int fifotest[25],pos=0;
+
+    if(pos>=FIFO_MAX)
+    {
+        memmove(&fifotest[0],&fifotest[1],sizeof(fifotest)-(sizeof(fifotest[0])));
+       fifotest[FIFO_MAX-1]=data; 
+    }else{
+        fifotest[pos++]=data;
+    }
+}
