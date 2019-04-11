@@ -4,6 +4,26 @@
 #include "stdio.h"
 #include "clib.h"
 
+/*变量作用域，在switch case 中如果case 0中不加括号则编译报错，因为rangetest的作用域是整个括号区间，当num等于0时，
+rangetest没有定义将会出错*/
+switch(num)
+{
+	case 0:
+	break;
+	case 1:
+	{
+		unsigned int rangetest;
+		rangetest++
+		if(rangetest>10)
+		{
+			
+		}
+	}
+	break；
+	default:
+	break;
+}
+
 /*
 section是把相应的结构放到指定的段中
 属性 unused 用于函数和变量，表示该函数或变量可能不使用，这个属性可以避免
