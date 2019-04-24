@@ -4,6 +4,29 @@
 #include "stdio.h"
 #include "clib.h"
 
+/*
+https://www.cnblogs.com/arxive/p/5160007.html
+%m.ns：输出占m列，但只取字符串中左端n个字符。这n个字符输出在m列的右侧，左补空格。
+%m.nf：输出共占m列，其中有n位小数，若数值宽度小于m左端补空格。 
+
+  i = snprintf(a, 13, "%012d", 12345);  // 第 1 种情况
+  printf("i = %lu, a = %s\n", i, a);    // 输出：i = 12, a = 000000012345
+ 
+  i = snprintf(a, 9, "%012d", 12345);   // 第 2 种情况
+  printf("i = %lu, a = %s\n", i, a);    // 输出：i = 12, a = 00000001
+
+sprintf 的返回值
+    char buffer[200],s[]="computer",c='l';
+    int i=35,j;
+    float fp=1.7320534f;//Format and print various data:
+    j=sprintf(buffer,"String:%s\n",s);//C4996
+    j+=sprintf(buffer+j,"Character:%c\n",c);//C4996
+    j+=sprintf(buffer+j,"Integer:%d\n",i);//C4996
+    j+=sprintf(buffer+j,"Real:%f\n",fp);//C4996
+//Note:sprintf is deprecated; consider using sprintf_s instead
+    printf("Output:\n%s\ncharactercount=%d\n",buffer,j);
+*/
+
 /*变量作用域，在switch case 中如果case 0中不加括号则编译报错，因为rangetest的作用域是整个括号区间，当num等于0时，
 rangetest没有定义将会出错*/
 switch(num)
